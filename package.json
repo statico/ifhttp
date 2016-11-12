@@ -1,0 +1,31 @@
+{
+  "name": "ifhttp",
+  "version": "0.0.1",
+  "description": "HTTP REST server for Z-Machine interactive fiction",
+  "author": "Ian Langworth <ian@langworth.com>",
+  "license": "MIT",
+  "dependencies": {
+    "coffee-script": "1.11.1",
+    "commander": "2.9.0",
+    "ifvms": "0.1.0",
+    "restify": "4.2.0",
+    "uuid": "2.0.3"
+  },
+  "scripts": {
+    "web": "coffee server.coffee"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/statico/ifhttp.git"
+  },
+  "keywords": [
+    "interactive",
+    "fiction",
+    "z-machine",
+    "zmachine",
+    "if",
+    "zvm",
+    "http",
+    "rest"
+  ]
+}
