@@ -8,16 +8,34 @@ All request and response bodies should be JSON. In addition to a status code, re
 
 ### GET /new
 
-Returns an object, `{"session": "<id>"}`, with a new session ID.
+Returns a session ID for a new game.
+
+Response:
+
+```json
+{
+  "session": "<id>"
+}
+```
 
 ### POST /send
 
-Sends a command to the game. Payload should be a JSON object in the form:
+Sends a command to the game.
+
+Request:
 
 ```json
 {
   "session": "<id>",
   "message": "<user input>"
+}
+```
+
+Response:
+
+```json
+{
+  "output": "<text>"
 }
 ```
 
