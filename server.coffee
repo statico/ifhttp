@@ -1,12 +1,12 @@
 #!/usr/bin/env coffee
 
+require('console-stamp')(console)
+
 commander = require 'commander'
 fs = require 'fs'
 ifvms = require 'ifvms'
 restify = require 'restify'
 uuid = require 'uuid'
-
-require('console-stamp')(console)
 
 commander
   .usage('<story.z8>')
@@ -33,17 +33,23 @@ class Session
     @id = if commander.debug then 'temp' else uuid.v4()
     @vm = ifvms.bootstrap.zvm commander.args[0], []
     @lastUpdate = Date.now()
+    @_buffer = ''
     @_lastOrder = null # The VM will send a "request for read" order, which we save.
     @_processAllOrders()
+
+  getBuffer: ->
+    output = @_buffer.replace(/^\s+/, '') # Trim leading space.
     @_buffer = ''
+    return output
 
   send: (input, cb) ->
     @lastUpdate = Date.now()
     @_lastOrder.response = input
     @vm.inputEvent @_lastOrder
     @_processAllOrders()
-    output = @_buffer.substr(input.length + 2) # Trim past the input and two newlines.
-    @_buffer = ''
+    output = @getBuffer()
+      .substr(input.length) # Trim past the input.
+      .replace(/^\s+/, '') # ...and leading space past that.
     cb null, output
 
   _processAllOrders: ->
@@ -68,7 +74,7 @@ server.get '/new', (req, res, next) ->
   sess = new Session()
   sessions[sess.id] = sess
   console.log sess.id, req.connection.remoteAddress, '(new session)'
-  res.send { session: sess.id }
+  res.send { session: sess.id, output: sess.getBuffer() }
   next()
 
 server.post '/send', (req, res, next) ->

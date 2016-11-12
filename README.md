@@ -14,7 +14,8 @@ Response:
 
 ```json
 {
-  "session": "<id>"
+  "session": "<id>",
+  "output": "<text>"
 }
 ```
 
@@ -42,5 +43,5 @@ Response:
 ## Reference
 
 - [Inform](http://inform7.com/) - IF creation toolsuite
-- [ifvms](ifvms) - JavaScript Z-Machine VM used by this script
-- [ifplayer](ifplayer) - Command-line client which uses ifvms
+- [ifvms](https://github.com/curiousdannii/ifvms.js) - JavaScript Z-Machine VM used by this script
+- [ifplayer](https://github.com/jedi4ever/ifplayer.js) - Command-line client which uses ifvms
