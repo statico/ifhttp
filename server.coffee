@@ -35,7 +35,7 @@ setInterval(->
 class Session
 
   constructor: ->
-    @id = if commander.debug then 'temp' else uuid.v4()
+    @id = if commander.debug then 'test' else uuid.v4()
     @vm = ifvms.bootstrap.zvm commander.args[0], []
     @lastUpdate = Date.now()
     @_buffer = ''
@@ -105,7 +105,7 @@ server.on 'uncaughtException', (req, res, route, err) ->
 
 if commander.debug
   # Skip an extra request when debugging.
-  sessions['temp'] = new Session()
+  sessions['test'] = new Session()
 
 server.listen commander.port, ->
   console.log 'ifhttp listening at', server.url
