@@ -85,6 +85,10 @@ class Session
 server = restify.createServer()
 server.use restify.bodyParser()
 
+server.use (req, res, next) ->
+  req.remoteAddr = req.headers['x-forwarded-for'] or req.connection.remoteAddress
+  next()
+
 server.get '/', (req, res, next) ->
   res.contentType = 'text/plain'
   res.send 'ok\n'
@@ -93,8 +97,7 @@ server.get '/', (req, res, next) ->
 server.get '/new', (req, res, next) ->
   sess = new Session()
   sessions[sess.id] = sess
-  addr = req.headers['x-forwarded-for'] or req.connection.remoteAddress
-  console.log sess.id, addr, '(new session)'
+  console.log sess.id, req.remoteAddr, '(new session)'
   res.send { session: sess.id, output: sess.getBuffer() }
   next()
 
@@ -113,10 +116,10 @@ server.post '/send', (req, res, next) ->
     if not sess.running
       delete sessions[session]
     if err
-      console.error "Error: #{ err }"
+      console.error sess.id, req.remoteAddr, "Error: #{ err }"
       res.send 500, { error: err }
       return
-    console.log sess.id, req.connection.remoteAddress, JSON.stringify(message)
+    console.log sess.id, req.remoteAddr, JSON.stringify(message)
     res.send { output: output }
     return next()
 
