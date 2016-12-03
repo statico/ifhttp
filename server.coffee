@@ -112,6 +112,9 @@ server.post '/send', (req, res, next) ->
     res.send 400, { error: "No such session" }
     return next()
 
+  # Simple input sanitization.
+  message = message.substr(0, 255).replace(/[^\w ]+/g, '')
+
   sess.send message, (err, output) ->
     if not sess.running
       delete sessions[session]
