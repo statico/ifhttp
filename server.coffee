@@ -4,6 +4,7 @@ require('console-stamp')(console)
 
 commander = require 'commander'
 fs = require 'fs'
+humanizePlus = require 'humanize-plus'
 ifvms = require 'ifvms'
 restify = require 'restify'
 uuid = require 'uuid'
@@ -25,8 +26,11 @@ setInterval(->
     if sess.lastUpdate < t
       console.log "Deleted session", id
       delete sessions[id]
-  console.log Object.keys(sessions).length, 'sessions, memory:', process.memoryUsage()
-, 5000)
+  mem = process.memoryUsage()
+  for k, v of mem
+    mem[k] = humanizePlus.fileSize(v)
+  console.log "#{ Object.keys(sessions).length } sessions, memory: #{ JSON.stringify mem }"
+, 60*1000)
 
 class Session
 
