@@ -11,7 +11,7 @@ uuid = require 'uuid'
 commander
   .usage('<story.z8>')
   .option('-d, --debug', 'Always create/return the same session ID, "test"')
-  .option('-t, --session-timeout <timeout>', 'Session timeout (in seconds)', 60*5)
+  .option('-t, --session-timeout <timeout>', 'Session timeout (in seconds)', 60*15)
   .option('-p, --port <port>', 'Port to bind to', 8080)
   .parse(process.argv)
 
