@@ -74,7 +74,8 @@ server.use restify.bodyParser()
 server.get '/new', (req, res, next) ->
   sess = new Session()
   sessions[sess.id] = sess
-  console.log sess.id, req.connection.remoteAddress, '(new session)'
+  addr = req.headers['x-forwarded-for'] or req.connection.remoteAddress
+  console.log sess.id, addr, '(new session)'
   res.send { session: sess.id, output: sess.getBuffer() }
   next()
 
