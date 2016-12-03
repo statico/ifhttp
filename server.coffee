@@ -75,6 +75,11 @@ class Session
 server = restify.createServer()
 server.use restify.bodyParser()
 
+server.get '/', (req, res, next) ->
+  res.contentType = 'text/plain'
+  res.send 'ok\n'
+  next()
+
 server.get '/new', (req, res, next) ->
   sess = new Session()
   sessions[sess.id] = sess
