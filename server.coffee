@@ -25,6 +25,7 @@ setInterval(->
     if sess.lastUpdate < t
       console.log "Deleted session", id
       delete sessions[id]
+  console.log Object.keys(sessions).length, 'sessions, memory:', process.memoryUsage()
 , 5000)
 
 class Session
