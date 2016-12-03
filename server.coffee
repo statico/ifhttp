@@ -37,6 +37,7 @@ class Session
   constructor: ->
     @id = if commander.debug then 'test' else uuid.v4()
     @vm = ifvms.bootstrap.zvm commander.args[0], []
+    @running = true
     @lastUpdate = Date.now()
     @_buffer = ''
     @_lastOrder = null # The VM will send a "request for read" order, which we save.
@@ -71,6 +72,9 @@ class Session
       when 'read'
         @_lastOrder = order
         break
+      when 'quit'
+        @running = false
+        break
 
 server = restify.createServer()
 server.use restify.bodyParser()
@@ -100,6 +104,8 @@ server.post '/send', (req, res, next) ->
     return next()
 
   sess.send message, (err, output) ->
+    if not sess.running
+      delete sessions[session]
     console.log sess.id, req.connection.remoteAddress, JSON.stringify(message)
     res.send { output: output }
     return next()
