@@ -49,9 +49,15 @@ class Session
     return output
 
   send: (input, cb) ->
+    if not @running
+      return cb "VM not running"
     @lastUpdate = Date.now()
     @_lastOrder.response = input
-    @vm.inputEvent @_lastOrder
+    try
+      @vm.inputEvent @_lastOrder
+    catch e
+      @running = false
+      return cb e
     @_processAllOrders()
     output = @getBuffer()
       .substr(input.length) # Trim past the input.
@@ -106,6 +112,10 @@ server.post '/send', (req, res, next) ->
   sess.send message, (err, output) ->
     if not sess.running
       delete sessions[session]
+    if err
+      console.error "Error: #{ err }"
+      res.send 500, { error: err }
+      return
     console.log sess.id, req.connection.remoteAddress, JSON.stringify(message)
     res.send { output: output }
     return next()
