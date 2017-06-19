@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "HTTP REST server for Z-Machine interactive fiction",
   "author": "Ian Langworth <ian@langworth.com>",
+  "private": true,
   "license": "MIT",
   "scripts": {
     "start": "babel-node server.js",
