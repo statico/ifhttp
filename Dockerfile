@@ -1,10 +1,10 @@
 FROM node:7
 
-# Install Yarn - https://yarnpkg.com/en/docs/install#linux-tab
-ADD https://dl.yarnpkg.com/debian/pubkey.gpg /tmp/yarn.gpg
-RUN apt-key add /tmp/yarn.gpg
-RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" >/etc/apt/sources.list.d/yarn.list
-RUN apt-get update && sudo apt-get install yarn
+# Global install yarn package manager (copied from kkarczmarczyk/docker-node-yarn)
+RUN apt-get update && apt-get install -y curl apt-transport-https && \
+    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
+    echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list && \
+    apt-get update && apt-get install -y yarn
 
 COPY server.js package.json ./
 RUN yarn install
