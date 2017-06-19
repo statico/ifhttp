@@ -84,6 +84,7 @@ class Session
 
 server = restify.createServer()
 server.use restify.bodyParser()
+server.use require('cors')()
 
 server.use (req, res, next) ->
   req.remoteAddr = req.headers['x-forwarded-for'] or req.connection.remoteAddress
