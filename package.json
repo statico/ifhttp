@@ -41,6 +41,7 @@
     "ifvms": "0.1.0",
     "restify": "4.2.0",
     "snazzy": "^7.0.0",
+    "touch": "^1.0.0",
     "uuid": "2.0.3"
   },
   "devDependencies": {

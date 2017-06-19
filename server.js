@@ -1,10 +1,12 @@
 import commander from 'commander'
 import cors from 'cors'
+import csvStringify from 'csv-stringify'
+import fs from 'fs'
 import humanizePlus from 'humanize-plus'
 import ifvms from 'ifvms'
 import restify from 'restify'
+import touch from 'touch'
 import uuid from 'uuid'
-import csvStringify from 'csv-stringify'
 
 require('console-stamp')(console)
 
@@ -12,6 +14,7 @@ commander
   .usage('<story.z8>')
   .option('-d, --debug', 'Always create/return the same session ID, "test"')
   .option('-t, --session-timeout <timeout>', 'Session timeout (in seconds)', 60 * 15)
+  .option('-c, --csv <path>', 'Log game sessions to a CSV file')
   .option('-p, --port <port>', 'Port to bind to', 8080)
   .parse(process.argv)
 
@@ -96,6 +99,26 @@ class Session {
   }
 }
 
+function logToCSV (addr, sessionId, message, reply) {
+  if (!commander.csv) return
+  let datetime = new Date().toISOString().slice(0, 19).replace('T', ' ')
+  csvStringify([[datetime, sessionId, addr, message, reply]], (err, line) => {
+    if (err) {
+      console.error(err)
+      return
+    }
+    try {
+      fs.appendFileSync(commander.csv, line, 'utf8')
+    } catch (err) {
+      console.error(`Could not write to ${commander.csv}:`, err)
+    }
+  })
+}
+
+if (commander.csv) {
+  touch.sync(commander.csv)
+}
+
 let server = restify.createServer()
 server.use(restify.bodyParser())
 server.use(cors())
@@ -145,6 +168,7 @@ server.post('/send', function (req, res, next) {
       return
     }
     console.log(sess.id, req.remoteAddr, JSON.stringify(message))
+    logToCSV(req.remoteAddr, sess.id, message, output)
     res.send({ output })
     return next()
   })
