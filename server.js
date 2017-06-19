@@ -117,6 +117,7 @@ function logToCSV (addr, sessionId, message, reply) {
 
 if (commander.csv) {
   touch.sync(commander.csv)
+  console.log(`Logging sessions as CSV to ${commander.csv}`)
 }
 
 let server = restify.createServer()
