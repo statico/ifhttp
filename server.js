@@ -168,9 +168,9 @@ app.post('/send', function(req, res) {
   }
 
   // Simple input sanitization.
-  message = message.substr(0, 255).replace(/[^\w ]+/g, '')
+  const sanitized = message.substr(0, 255).replace(/[^\w ]+/g, '')
 
-  return sess.send(message, function(err, output) {
+  return sess.send(sanitized, function(err, output) {
     if (!sess.running) {
       delete sessions[session]
     }
@@ -179,8 +179,8 @@ app.post('/send', function(req, res) {
       res.status(500).json({ error: err })
       return
     }
-    console.log(sess.id, req.remoteAddr, JSON.stringify(message))
-    logToCSV(req.remoteAddr, sess.id, message, output)
+    console.log(sess.id, req.remoteAddr, JSON.stringify(sanitized))
+    logToCSV(req.remoteAddr, sess.id, sanitized, output)
     res.json({ output })
   })
 })
