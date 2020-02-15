@@ -85,6 +85,7 @@ class Session {
     const output = this.getBuffer()
       .substr(input.length + 1) // Trim past the input + bold marker.
       .replace(/^\s+/, '') // ...and leading space past that.
+      .replace(/\n\u200e\n/, '\n') // Fix a bug with zero-width chars.
     return output
   }
 
@@ -176,8 +177,8 @@ app.post('/send', function(req, res) {
   const sanitized = message.substr(0, 255).replace(/[^\w ]+/g, '')
 
   try {
-    const output = sess.send(sanitized)
     console.log(sess.id, req.remoteAddr, JSON.stringify(sanitized))
+    const output = sess.send(sanitized)
     logToCSV(req.remoteAddr, sess.id, sanitized, output)
     res.json({ output })
     if (!sess.running) {
