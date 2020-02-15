@@ -27,6 +27,10 @@ if (commander.args.length !== 1) {
   commander.help()
 }
 
+// Use zero-width characters to signal bold/normal.
+const INVERSE_ON = '\u200f'
+const INVERSE_OFF = '\u200e'
+
 const sessions = {}
 
 setInterval(function() {
@@ -65,9 +69,9 @@ class Session {
     return output
   }
 
-  send(input, cb) {
+  send(input) {
     if (!this.running) {
-      return cb(new Error('VM not running'))
+      throw new Error('VM not running')
     }
     this.lastUpdate = Date.now()
     this._lastOrder.response = input
@@ -75,13 +79,13 @@ class Session {
       this.vm.inputEvent(this._lastOrder)
     } catch (e) {
       this.running = false
-      return cb(e)
+      throw e
     }
     this._processAllOrders()
     const output = this.getBuffer()
-      .substr(input.length) // Trim past the input.
+      .substr(input.length + 1) // Trim past the input + bold marker.
       .replace(/^\s+/, '') // ...and leading space past that.
-    return cb(null, output)
+    return output
   }
 
   _processAllOrders() {
@@ -93,7 +97,9 @@ class Session {
   _processOrder(order) {
     switch (order.code) {
       case 'stream':
-        if (order.text != null) {
+        if (order.text != null && /\S/.test(order.text)) {
+          this._buffer +=
+            order.css['font-weight'] === 'bold' ? INVERSE_ON : INVERSE_OFF
           this._buffer += order.text
         }
         break
@@ -151,7 +157,6 @@ app.get('/new', function(req, res) {
   sessions[sess.id] = sess
   console.log(sess.id, req.remoteAddr, '(new session)')
   res.json({ session: sess.id, output: sess.getBuffer() })
-  return next()
 })
 
 app.post('/send', function(req, res) {
@@ -170,19 +175,19 @@ app.post('/send', function(req, res) {
   // Simple input sanitization.
   const sanitized = message.substr(0, 255).replace(/[^\w ]+/g, '')
 
-  return sess.send(sanitized, function(err, output) {
-    if (!sess.running) {
-      delete sessions[session]
-    }
-    if (err) {
-      console.error(sess.id, req.remoteAddr, `Error: ${err}`)
-      res.status(500).json({ error: err })
-      return
-    }
+  try {
+    const output = sess.send(sanitized)
     console.log(sess.id, req.remoteAddr, JSON.stringify(sanitized))
     logToCSV(req.remoteAddr, sess.id, sanitized, output)
     res.json({ output })
-  })
+    if (!sess.running) {
+      delete sessions[session]
+    }
+  } catch (err) {
+    console.error(sess.id, req.remoteAddr, `Error: ${err}`)
+    res.status(500).json({ error: err })
+    return
+  }
 })
 
 if (commander.debug) {
