@@ -1,4 +1,4 @@
-FROM node:7
+FROM node:12
 
 # Global install yarn package manager (copied from kkarczmarczyk/docker-node-yarn)
 RUN apt-get update && apt-get install -y curl apt-transport-https && \

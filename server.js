@@ -13,17 +13,23 @@ require('console-stamp')(console)
 commander
   .usage('<story.z8>')
   .option('-d, --debug', 'Always create/return the same session ID, "test"')
-  .option('-t, --session-timeout <timeout>', 'Session timeout (in seconds)', 60 * 15)
+  .option(
+    '-t, --session-timeout <timeout>',
+    'Session timeout (in seconds)',
+    60 * 15
+  )
   .option('-c, --csv <path>', 'Log game sessions to a CSV file')
   .option('-p, --port <port>', 'Port to bind to', 8080)
   .parse(process.argv)
 
-if (commander.args.length !== 1) { commander.help() }
+if (commander.args.length !== 1) {
+  commander.help()
+}
 
 let sessions = {}
 
-setInterval(function () {
-  let t = Date.now() - (commander.sessionTimeout * 1000)
+setInterval(function() {
+  let t = Date.now() - commander.sessionTimeout * 1000
   for (let id in sessions) {
     let sess = sessions[id]
     if (sess.lastUpdate < t) {
@@ -36,12 +42,13 @@ setInterval(function () {
     let v = mem[k]
     mem[k] = humanizePlus.fileSize(v)
   }
-  return console.log(`${Object.keys(sessions).length} sessions, memory: ${JSON.stringify(mem)}`)
-}
-, 60 * 1000)
+  return console.log(
+    `${Object.keys(sessions).length} sessions, memory: ${JSON.stringify(mem)}`
+  )
+}, 60 * 1000)
 
 class Session {
-  constructor () {
+  constructor() {
     this.id = commander.debug ? 'test' : uuid.v4()
     this.vm = ifvms.bootstrap.zvm(commander.args[0], [])
     this.running = true
@@ -51,13 +58,13 @@ class Session {
     this._processAllOrders()
   }
 
-  getBuffer () {
+  getBuffer() {
     let output = this._buffer.replace(/^\s+/, '') // Trim leading space.
     this._buffer = ''
     return output
   }
 
-  send (input, cb) {
+  send(input, cb) {
     if (!this.running) {
       return cb(new Error('VM not running'))
     }
@@ -76,13 +83,13 @@ class Session {
     return cb(null, output)
   }
 
-  _processAllOrders () {
+  _processAllOrders() {
     for (let o of Array.from(this.vm.orders)) {
       this._processOrder(o)
     }
   }
 
-  _processOrder (order) {
+  _processOrder(order) {
     switch (order.code) {
       case 'stream':
         if (order.text != null) {
@@ -99,9 +106,12 @@ class Session {
   }
 }
 
-function logToCSV (addr, sessionId, message, reply) {
+function logToCSV(addr, sessionId, message, reply) {
   if (!commander.csv) return
-  let datetime = new Date().toISOString().slice(0, 19).replace('T', ' ')
+  let datetime = new Date()
+    .toISOString()
+    .slice(0, 19)
+    .replace('T', ' ')
   csvStringify([[datetime, sessionId, addr, message, reply]], (err, line) => {
     if (err) {
       console.error(err)
@@ -124,18 +134,19 @@ let server = restify.createServer()
 server.use(restify.bodyParser())
 server.use(cors())
 
-server.use(function (req, res, next) {
-  req.remoteAddr = req.headers['x-forwarded-for'] || req.connection.remoteAddress
+server.use(function(req, res, next) {
+  req.remoteAddr =
+    req.headers['x-forwarded-for'] || req.connection.remoteAddress
   return next()
 })
 
-server.get('/', function (req, res, next) {
+server.get('/', function(req, res, next) {
   res.contentType = 'text/plain'
   res.send('ok\n')
   return next()
 })
 
-server.get('/new', function (req, res, next) {
+server.get('/new', function(req, res, next) {
   let sess = new Session()
   sessions[sess.id] = sess
   console.log(sess.id, req.remoteAddr, '(new session)')
@@ -143,15 +154,15 @@ server.get('/new', function (req, res, next) {
   return next()
 })
 
-server.post('/send', function (req, res, next) {
-  let {session, message} = req.body
-  if ((session == null) || (message == null)) {
+server.post('/send', function(req, res, next) {
+  let { session, message } = req.body
+  if (session == null || message == null) {
     res.send(400, { error: 'Missing session or message' })
     return next()
   }
 
   let sess = sessions[session]
-  if ((sess == null)) {
+  if (sess == null) {
     res.send(400, { error: 'No such session' })
     return next()
   }
@@ -159,7 +170,7 @@ server.post('/send', function (req, res, next) {
   // Simple input sanitization.
   message = message.substr(0, 255).replace(/[^\w ]+/g, '')
 
-  return sess.send(message, function (err, output) {
+  return sess.send(message, function(err, output) {
     if (!sess.running) {
       delete sessions[session]
     }
@@ -175,7 +186,7 @@ server.post('/send', function (req, res, next) {
   })
 })
 
-server.on('uncaughtException', function (req, res, route, err) {
+server.on('uncaughtException', function(req, res, route, err) {
   console.error(err.stack)
   return res.send(500, { error: 'Internal Server Error' })
 })
@@ -185,4 +196,6 @@ if (commander.debug) {
   sessions['test'] = new Session()
 }
 
-server.listen(commander.port, () => console.log('ifhttp listening at', server.url))
+server.listen(commander.port, () =>
+  console.log('ifhttp listening at', server.url)
+)
