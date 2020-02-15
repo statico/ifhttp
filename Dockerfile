@@ -1,4 +1,4 @@
-FROM node:12
+FROM node:12-alpine
 
 COPY server.js package.json ./
 RUN yarn install
