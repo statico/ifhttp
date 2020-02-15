@@ -1,10 +1,11 @@
 const commander = require('commander')
+const bodyParser = require('body-parser')
 const cors = require('cors')
 const csvStringify = require('csv-stringify')
 const fs = require('fs')
 const humanizePlus = require('humanize-plus')
 const ifvms = require('ifvms')
-const restify = require('restify')
+const express = require('express')
 const touch = require('touch')
 const uuid = require('uuid')
 
@@ -26,20 +27,20 @@ if (commander.args.length !== 1) {
   commander.help()
 }
 
-let sessions = {}
+const sessions = {}
 
 setInterval(function() {
-  let t = Date.now() - commander.sessionTimeout * 1000
-  for (let id in sessions) {
-    let sess = sessions[id]
+  const t = Date.now() - commander.sessionTimeout * 1000
+  for (const id in sessions) {
+    const sess = sessions[id]
     if (sess.lastUpdate < t) {
       console.log('Deleted session', id)
       delete sessions[id]
     }
   }
-  let mem = process.memoryUsage()
-  for (let k in mem) {
-    let v = mem[k]
+  const mem = process.memoryUsage()
+  for (const k in mem) {
+    const v = mem[k]
     mem[k] = humanizePlus.fileSize(v)
   }
   return console.log(
@@ -59,7 +60,7 @@ class Session {
   }
 
   getBuffer() {
-    let output = this._buffer.replace(/^\s+/, '') // Trim leading space.
+    const output = this._buffer.replace(/^\s+/, '') // Trim leading space.
     this._buffer = ''
     return output
   }
@@ -77,14 +78,14 @@ class Session {
       return cb(e)
     }
     this._processAllOrders()
-    let output = this.getBuffer()
+    const output = this.getBuffer()
       .substr(input.length) // Trim past the input.
       .replace(/^\s+/, '') // ...and leading space past that.
     return cb(null, output)
   }
 
   _processAllOrders() {
-    for (let o of Array.from(this.vm.orders)) {
+    for (const o of Array.from(this.vm.orders)) {
       this._processOrder(o)
     }
   }
@@ -108,7 +109,7 @@ class Session {
 
 function logToCSV(addr, sessionId, message, reply) {
   if (!commander.csv) return
-  let datetime = new Date()
+  const datetime = new Date()
     .toISOString()
     .slice(0, 19)
     .replace('T', ' ')
@@ -130,41 +131,40 @@ if (commander.csv) {
   console.log(`Logging sessions as CSV to ${commander.csv}`)
 }
 
-let server = restify.createServer()
-server.use(restify.bodyParser())
-server.use(cors())
+const app = express()
+app.use(bodyParser.json())
+app.use(cors())
 
-server.use(function(req, res, next) {
+app.use(function(req, res, next) {
   req.remoteAddr =
     req.headers['x-forwarded-for'] || req.connection.remoteAddress
   return next()
 })
 
-server.get('/', function(req, res, next) {
+app.get('/', function(req, res) {
   res.contentType = 'text/plain'
   res.send('ok\n')
-  return next()
 })
 
-server.get('/new', function(req, res, next) {
-  let sess = new Session()
+app.get('/new', function(req, res) {
+  const sess = new Session()
   sessions[sess.id] = sess
   console.log(sess.id, req.remoteAddr, '(new session)')
-  res.send({ session: sess.id, output: sess.getBuffer() })
+  res.json({ session: sess.id, output: sess.getBuffer() })
   return next()
 })
 
-server.post('/send', function(req, res, next) {
-  let { session, message } = req.body
+app.post('/send', function(req, res) {
+  const { session, message } = req.body
   if (session == null || message == null) {
-    res.send(400, { error: 'Missing session or message' })
-    return next()
+    res.status(400).json({ error: 'Missing session or message' })
+    return
   }
 
-  let sess = sessions[session]
+  const sess = sessions[session]
   if (sess == null) {
-    res.send(400, { error: 'No such session' })
-    return next()
+    res.status(400).json({ error: 'No such session' })
+    return
   }
 
   // Simple input sanitization.
@@ -176,19 +176,13 @@ server.post('/send', function(req, res, next) {
     }
     if (err) {
       console.error(sess.id, req.remoteAddr, `Error: ${err}`)
-      res.send(500, { error: err })
+      res.status(500).json({ error: err })
       return
     }
     console.log(sess.id, req.remoteAddr, JSON.stringify(message))
     logToCSV(req.remoteAddr, sess.id, message, output)
-    res.send({ output })
-    return next()
+    res.json({ output })
   })
-})
-
-server.on('uncaughtException', function(req, res, route, err) {
-  console.error(err.stack)
-  return res.send(500, { error: 'Internal Server Error' })
 })
 
 if (commander.debug) {
@@ -196,6 +190,6 @@ if (commander.debug) {
   sessions['test'] = new Session()
 }
 
-server.listen(commander.port, () =>
-  console.log('ifhttp listening at', server.url)
+const listener = app.listen(commander.port, () =>
+  console.log(`ifhttp listening at http://localhost:${listener.address().port}`)
 )
