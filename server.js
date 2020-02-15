@@ -1,12 +1,12 @@
-import commander from 'commander'
-import cors from 'cors'
-import csvStringify from 'csv-stringify'
-import fs from 'fs'
-import humanizePlus from 'humanize-plus'
-import ifvms from 'ifvms'
-import restify from 'restify'
-import touch from 'touch'
-import uuid from 'uuid'
+const commander = require('commander')
+const cors = require('cors')
+const csvStringify = require('csv-stringify')
+const fs = require('fs')
+const humanizePlus = require('humanize-plus')
+const ifvms = require('ifvms')
+const restify = require('restify')
+const touch = require('touch')
+const uuid = require('uuid')
 
 require('console-stamp')(console)
 
