@@ -30,20 +30,20 @@
     }
   },
   "dependencies": {
-    "body-parser": "^1.19.0",
-    "commander": "4.1.1",
-    "console-stamp": "0.2.9",
+    "body-parser": "^1.19.2",
+    "commander": "9.1.0",
+    "console-stamp": "3.0.4",
     "cors": "2.8.5",
-    "csv-stringify": "^5.3.6",
-    "express": "^4.17.1",
+    "csv-stringify": "^6.0.5",
+    "express": "^4.17.3",
     "humanize-plus": "1.8.2",
-    "ifvms": "0.1.0",
+    "ifvms": "1.1.6",
     "touch": "^3.1.0",
-    "uuid": "3.4.0"
+    "uuid": "8.3.2"
   },
   "devDependencies": {
-    "husky": "^4.2.3",
-    "prettier": "^1.19.1",
-    "pretty-quick": "^2.0.1"
+    "husky": "^7.0.4",
+    "prettier": "^2.6.1",
+    "pretty-quick": "^3.1.3"
   }
 }
