@@ -1,7 +1,7 @@
 # ifhttp
 
 [![license](https://img.shields.io/github/license/statico/ifhttp.svg?style=flat-square)](https://github.com/statico/ifhttp/blob/master/LICENSE)
-[![build status](https://img.shields.io/github/workflow/status/statico/ifhttp/Create%20and%20publish%20a%20Docker%20image.svg?style=flat-square)](https://ghcr.io/statico/ifhttp)
+[![build status](https://img.shields.io/github/actions/workflow/status/statico/ifhttp/build.yml?branch=main&style=flat-square)](https://ghcr.io/statico/ifhttp)
 
 **ifhttp** provides an HTTP REST interface for interacting with Z-Machine interactive fiction (IF) stories (typically `.z8` files). Clients can connect to the service to start a game and then POST commands to it. Sessions are deleted after a while in a feeble attempt to save memory. This service is definitely DoS-able.
 
